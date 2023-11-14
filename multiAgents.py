@@ -242,42 +242,40 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
         legal moves.
         """
         "*** YOUR CODE HERE ***"
+        return self.max_value(gameState, 0)[1]
 
-        def max_value(game_state, depth):
-            available_actions = game_state.getLegalActions(0)
-            if len(available_actions) == 0 or game_state.isWin() or game_state.isLose() or depth == self.depth:
-                return (self.evaluationFunction(game_state), None)
-            
-            max_value, selected_action = -(float("inf")), None
 
-            for action in available_actions:
-                successor_value = exp_value(game_state.generateSuccessor(0, action), 1, depth)[0]
-                if max_value < successor_value:
-                    max_value, selected_action = successor_value, action
+    def max_value(self,game_state, depth):
+        available_actions = game_state.getLegalActions(0)
+        if len(available_actions) == 0 or game_state.isWin() or game_state.isLose() or depth == self.depth:
+            return (self.evaluationFunction(game_state), None)
+        
+        max_value, selected_action = -(float("inf")), None
 
-            return (max_value, selected_action)
+        for action in available_actions:
+            successor_value = self.exp_value(game_state.generateSuccessor(0, action), 1, depth)[0]
+            if max_value < successor_value:
+                max_value, selected_action = successor_value, action
 
-        def exp_value(game_state, agent_id, depth):
-            available_actions = game_state.getLegalActions(agent_id)
-            if len(available_actions) == 0:
-                return (self.evaluationFunction(game_state), None)
+        return (max_value, selected_action)
 
-            expected_value, selected_action = 0, None
+    def exp_value(self, game_state, agent_id, depth):
+        available_actions = game_state.getLegalActions(agent_id)
+        if len(available_actions) == 0:
+            return (self.evaluationFunction(game_state), None)
 
-            for action in available_actions:
-                if agent_id == game_state.getNumAgents() - 1:
-                    successor_value = max_value(game_state.generateSuccessor(agent_id, action), depth + 1)[0]
-                else:
-                    successor_value = exp_value(game_state.generateSuccessor(agent_id, action), agent_id + 1, depth)[0]
+        expected_value, selected_action = 0, None
 
-                probability = successor_value / len(available_actions)
-                expected_value += probability
+        for action in available_actions:
+            if agent_id == game_state.getNumAgents() - 1:
+                successor_value = self.max_value(game_state.generateSuccessor(agent_id, action), depth + 1)[0]
+            else:
+                successor_value = self.exp_value(game_state.generateSuccessor(agent_id, action), agent_id + 1, depth)[0]
 
-            return (expected_value, selected_action)
+            probability = successor_value / len(available_actions)
+            expected_value += probability
 
-        return max_value(gameState, 0)[1]
-
-        util.raiseNotDefined()
+        return (expected_value, selected_action)
 
 def betterEvaluationFunction(currentGameState):
     """
