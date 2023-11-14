@@ -170,7 +170,94 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        # AgentIndex = 0 is Pacman, AgentIndex = 1 is Ghost_1 and AgentIndex = 2 is Ghost_2
+        # Format of result = [score, action]
+        result = self.get_value(gameState, 0, 0)
+
+        # Return the action from result
+        return result[1]
+
+    def get_value(self, gameState, index, depth):
+        """
+        Returns value as pair of [score, action] based on the different cases:
+        1. Terminal state
+        2. Max-agent
+        3. Min-agent
+        """
+        # Terminal states:
+        if len(gameState.getLegalActions(index)) == 0 or depth == self.depth:
+            return gameState.getScore(), ""
+            # return self.evaluationFunction(gameState)
+
+        # maximaze the value for index = 0, because It is the pacman
+        if index == 0:
+            return self.max_value(gameState, index, depth)
+
+        # minimaze the value for index > 0, because It is the 
+        else:
+            return self.min_value(gameState, index, depth)
+
+    def max_value(self, gameState, index, depth):
+        """
+        Returns the max utility value-action for max-agent
+        """
+        # Actions that the pacman can make for this game state
+        legalMoves = gameState.getLegalActions(index)
+        max_value = float("-inf")
+        max_action = ""
+
+        successor_index = index + 1
+        successor_depth = depth
+        
+        # Generate the succesor for each actions
+        for action in legalMoves:
+            successor = gameState.generateSuccessor(index, action)
+
+            # Evaluate if the succesor index is equal to the amount of ghosts and if its a pacman update the index and depth.
+            if successor_index == gameState.getNumAgents():
+                successor_index = 0
+                successor_depth += 1
+
+            # We get the value of the ghost or the pacman
+            current_value = self.get_value(successor, successor_index, successor_depth)[0]
+
+            # We update the action and value if we get a max value than the last one
+            if current_value > max_value:
+                max_value = current_value
+                max_action = action
+
+        return max_value, max_action
+
+    def min_value(self, gameState, index, depth):
+        """
+        Returns the min utility value-action for min-agent
+        """
+        # We get the actions which ghosts can do
+        legalMoves = gameState.getLegalActions(index)
+        min_value = float("inf")
+        min_action = ""
+
+        # Increase the successor index the result could be the pacman or another ghost 
+        successor_index = index + 1
+        # We set the depth that we are
+        successor_depth = depth
+
+        for action in legalMoves:
+            # We generate the next scenario that we create with taking a action 
+            successor = gameState.generateSuccessor(index, action)
+
+            # Update the successor agent's index and depth if it's pacman
+            if successor_index == gameState.getNumAgents():
+                successor_index = 0
+                successor_depth += 1
+
+            current_value = self.get_value(successor, successor_index, successor_depth)[0]
+
+            if current_value < min_value:
+                min_value = current_value
+                min_action = action
+
+        return min_value, min_action
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
