@@ -289,6 +289,10 @@ def betterEvaluationFunction(currentGameState):
     We also take into consideration, with commensurate penalties, the distance to the nearest scared and non-scared ghost. 
     We also penalise the overall amount of capsules and food pellets left, hoping to incentivize Pac-Man to finish them. 
     To fine-tune Pac-Man's behaviour in various game conditions, you can change the weights attached to these penalties.
+    Pac-Man is encouraged to prioritise nearby food, steer clear of non-scared ghosts, 
+    and specifically target scared ghosts due to negative weights assigned to distances to food, 
+    non-scared ghosts, and scared ghosts. 
+    We modified the weights by trying diferent executations in the map provided to find the configuration that suits better to it.
     """
     "*** YOUR CODE HERE ***"
 
@@ -297,23 +301,19 @@ def betterEvaluationFunction(currentGameState):
     foods = currentGameState.getFood()
     capsules = currentGameState.getCapsules()
 
-    # Return based on game state
     if currentGameState.isWin():
         return float("inf")
     if currentGameState.isLose():
         return float("-inf")
 
-    # Populate foodDistList and find minFoodDist
     foodDistList = [util.manhattanDistance(each, pacmanPos) for each in foods.asList()]
     minFoodDist = min(foodDistList) if foodDistList else 0
 
-    # Populate ghostDistList and scaredGhostDistList, find minGhostDist and minScaredGhostDist
     ghostDistList = [util.manhattanDistance(pacmanPos, ghost.getPosition()) for ghost in ghostList if ghost.scaredTimer == 0]
     scaredGhostDistList = [util.manhattanDistance(pacmanPos, ghost.getPosition()) for ghost in ghostList if ghost.scaredTimer > 0]
     minGhostDist = min(ghostDistList) if ghostDistList else float("inf")
     minScaredGhostDist = min(scaredGhostDistList) if scaredGhostDistList else float("inf")
 
-    # Evaluate score
     score = scoreEvaluationFunction(currentGameState)
 
     # Distance to closest food
